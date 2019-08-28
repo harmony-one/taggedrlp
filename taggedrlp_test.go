@@ -572,7 +572,7 @@ func TestRegistry_Decode(t *testing.T) {
 			[]byte("" +
 				// BEGIN 16-byte Envelope list
 				"\xd0" +
-				// BEGIN 6-byte invalid Siganture
+				// BEGIN 6-byte invalid Signature
 				"\x86OMIGOD" +
 				// BEGIN 3-byte Envelope tag
 				"\x83Env" +
@@ -591,7 +591,7 @@ func TestRegistry_Decode(t *testing.T) {
 			[]byte("" +
 				// BEGIN 16-byte Envelope list
 				"\xd0" +
-				// BEGIN 7-byte invalid Siganture
+				// BEGIN 7-byte invalid Signature
 				"\x87HmnyTgd" +
 				// BEGIN 2-byte unknown tag
 				"\x82NO" +
