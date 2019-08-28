@@ -98,8 +98,6 @@ func TestPkgPathQualifiedName(t *testing.T) {
 	}
 }
 
-type unexportedType string
-
 func TestPkgPathQualifiedTypeName(t *testing.T) {
 	type args struct {
 		typ reflect.Type
@@ -295,16 +293,6 @@ func TestRegistry_MustRegister(t *testing.T) {
 			reg.MustRegister(tt.args.tag, tt.args.prototype)
 		})
 	}
-}
-
-type factoryPtrForType map[reflect.Type]*Factory
-
-func newFactoryPtrForType(factoryForType factoryForType) factoryPtrForType {
-	ret := make(factoryPtrForType)
-	for typ, factory := range factoryForType {
-		ret[typ] = &factory
-	}
-	return ret
 }
 
 func TestRegistry_AddFactory(t *testing.T) {
@@ -547,7 +535,7 @@ func TestRegistry_Encode(t *testing.T) {
 			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Encode() error = %#v, want %#v", err, tt.wantErr)
 			}
-			if gotEnc := w.Bytes(); bytes.Compare(gotEnc, tt.wantEnc) != 0 {
+			if gotEnc := w.Bytes(); !bytes.Equal(gotEnc, tt.wantEnc) {
 				t.Errorf("Encode() result = %x, want %x", gotEnc, tt.wantEnc)
 			}
 		})
@@ -684,7 +672,7 @@ func Test_ErrorsIncludeFields(t *testing.T) {
 		t.Run(reflect.TypeOf(tt.err).Name(), func(t *testing.T) {
 			s := tt.err.Error()
 			for _, c := range tt.components {
-				if strings.Index(s, c) == -1 {
+				if !strings.Contains(s, c) {
 					t.Errorf("%#v not found in error string %#v", c, s)
 				}
 			}
