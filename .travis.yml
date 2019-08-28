@@ -3,6 +3,7 @@ go:
   - stable
 go_import_path: github.com/harmony-one/taggedrlp
 install:
+  - export GO111MODULE=on
   - scripts/install_build_tools.sh
 script:
   - scripts/travis_checker.sh
