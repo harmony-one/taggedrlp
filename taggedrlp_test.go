@@ -675,14 +675,6 @@ func Test_ErrorsIncludeFields(t *testing.T) {
 			[]string{fmt.Sprintf("%#v", "OMG"), ": WTF BBQ"},
 		},
 		{
-			UndecodableStream{RecordV0Type, "OMG", errors.New("WTF BBQ")},
-			[]string{TypeName(RecordV0Type), fmt.Sprintf("%#v", "OMG"), ": WTF BBQ"},
-		},
-		{
-			UndecodableStream{nil, "", errors.New("WTF BBQ")},
-			[]string{": WTF BBQ"},
-		},
-		{
 			UnsupportedTag{"OMG"},
 			[]string{fmt.Sprintf("%#v", "OMG")},
 		},
@@ -710,10 +702,6 @@ func Test_ErrorCauseReturnsErrField(t *testing.T) {
 	}{
 		{
 			UnencodableValue{Err: errors.New("OMG")},
-			errors.New("OMG"),
-		},
-		{
-			UndecodableStream{Err: errors.New("OMG")},
 			errors.New("OMG"),
 		},
 	}

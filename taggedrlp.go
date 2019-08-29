@@ -298,28 +298,6 @@ func (reg *Registry) Decode(s *rlp.Stream) (interface{}, error) {
 	return obj, nil
 }
 
-// UndecodableStream indicates failure to decode an object out of a stream.
-type UndecodableStream struct {
-	Type reflect.Type // nil if no specific type was imposed
-	Tag  Tag          // valid only if Type is not nil; empty otherwise
-	Err  error
-}
-
-// Error returns a formatted error string.
-func (e UndecodableStream) Error() string {
-	objStr := "object"
-	if e.Type != nil {
-		objStr = fmt.Sprintf("%s object (tag %#v)", TypeName(e.Type), e.Tag)
-	}
-	return fmt.Sprintf("cannot decode %s out of stream: %s",
-		objStr, e.Err.Error())
-}
-
-// Cause returns the underlying decoding error.
-func (e UndecodableStream) Cause() error {
-	return e.Err
-}
-
 // UnsupportedTag indicates that an unsupported tag was encountered in stream.
 type UnsupportedTag struct {
 	Tag Tag
