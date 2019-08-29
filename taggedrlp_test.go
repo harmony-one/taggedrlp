@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
 	"reflect"
 	"strings"
@@ -542,30 +543,59 @@ func TestRegistry_Encode(t *testing.T) {
 	}
 }
 
+type errorChecker interface {
+	CheckError(t *testing.T, err error)
+}
+
+type nilError struct{}
+
+func (nilError) CheckError(t *testing.T, err error) {
+	if err != nil {
+		t.Errorf("unexpected error %v", err)
+	}
+}
+
+type errorValue struct{ want error }
+
+func (v errorValue) CheckError(t *testing.T, err error) {
+	if err != v.want {
+		t.Errorf("expected error %#v, got %#v", v.want, err)
+	}
+}
+
+type errorString struct{ want string }
+
+func (s errorString) CheckError(t *testing.T, err error) {
+	got := err.Error()
+	if got != s.want {
+		t.Errorf("expected error %#v, got %#v", s.want, got)
+	}
+}
+
 func TestRegistry_Decode(t *testing.T) {
 	tests := []struct {
-		name    string
-		b       []byte
-		want    interface{}
-		wantErr error
+		name         string
+		b            []byte
+		want         interface{}
+		errorChecker errorChecker
 	}{
 		{
 			"UntaggedIntoLegacy",
 			RecordV0WithoutEnvelope,
 			&RecordV0Value,
-			nil,
+			nilError{},
 		},
 		{
 			"TaggedWithEnvelope",
 			RecordV1WithEnvelope,
 			&RecordV1Value,
-			nil,
+			nilError{},
 		},
 		{
 			"FirstDecodeError",
 			[]byte{},
 			nil,
-			UndecodableStream{},
+			errorValue{io.EOF},
 		},
 		{
 			"EnvelopeSigMismatchFallbackToLegacy",
@@ -581,10 +611,7 @@ func TestRegistry_Decode(t *testing.T) {
 				// END Envelope list
 				""),
 			nil,
-			UndecodableStream{
-				Type: RecordV0Type,
-				Tag:  RecordV0Tag,
-			},
+			errorString{"rlp: input list has too many elements for taggedrlp.RecordV0"},
 		},
 		{
 			"UnknownTagCausesDirectError",
@@ -600,7 +627,7 @@ func TestRegistry_Decode(t *testing.T) {
 				// END Envelope list
 				""),
 			nil,
-			UnsupportedTag{"NO"},
+			errorValue{UnsupportedTag{"NO"}},
 		},
 	}
 	for _, tt := range tests {
@@ -608,15 +635,7 @@ func TestRegistry_Decode(t *testing.T) {
 			reg := makeRecordRegistry()
 			s := rlp.NewStream(bytes.NewReader(tt.b), 0)
 			got, err := reg.Decode(s)
-			if err2, ok := err.(UndecodableStream); ok {
-				// elide RLP errors; they are in general incomparable
-				err2.Err = nil
-				err = err2
-			}
-			//t.Logf("err=%#v, want=%#v", err, tt.wantErr)
-			if !reflect.DeepEqual(err, tt.wantErr) {
-				t.Errorf("Decode() error = %s, want %v", err, tt.wantErr)
-			}
+			tt.errorChecker.CheckError(t, err)
 			if !reflect.DeepEqual(tt.want, got) {
 				t.Error("Encode() result mismatch")
 				t.Errorf("want %#v", tt.want)

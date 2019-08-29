@@ -273,7 +273,7 @@ func (e UnencodableValue) Cause() error {
 func (reg *Registry) Decode(s *rlp.Stream) (interface{}, error) {
 	value, err := s.Raw()
 	if err != nil {
-		return nil, UndecodableStream{Err: err}
+		return nil, err
 	}
 	tag := LegacyTag
 	var e Envelope
@@ -293,7 +293,7 @@ func (reg *Registry) Decode(s *rlp.Stream) (interface{}, error) {
 		obj = reflect.New(typ).Interface()
 	}
 	if err = rlp.DecodeBytes(value, obj); err != nil {
-		return nil, UndecodableStream{Type: typ, Tag: tag, Err: err}
+		return nil, err
 	}
 	return obj, nil
 }
